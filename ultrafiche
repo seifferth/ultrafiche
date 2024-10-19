@@ -1,0 +1,54 @@
+#!/bin/sh
+
+serialize_files() {
+# Serializes all svg files in the current directory into a single html
+# file by embedding them using data uris. The page order is determined
+# by running 'sort -n', so naming the files something like 0.svg, 1.svg,
+# ..., 11.svg, 12.svg, etc. should work just fine.
+cat <<"EOF"
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+body {
+    margin: auto;
+    text-align: center;
+    background-color: #d4d4d7;
+}
+img {
+    background-color: #ffffff;
+}
+hr {
+    border: none;
+    margin: 0px;
+    height: 5px;
+}
+</style>
+</head>
+<body>
+EOF
+ls *.svg | sort -n | while read f; do
+    printf '<hr />\n<img src="data:image/svg+xml;base64,'
+    base64 <"$f" | tr -d '\n'
+    printf '">\n'
+done
+cat <<"EOF"
+<hr />
+</body>
+<script>
+// Dynamically set the initial width for pages based on screen and page width
+var screenwidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+var pagewidth = document.querySelector('img').naturalWidth;
+var bestwidth = Math.min(.97*screenwidth, 1.2*pagewidth);
+document.styleSheets[0].insertRule(`img { width: ${bestwidth}px; }`);
+</script>
+</html>
+EOF
+}
+
+tmpdir="$(mktemp -d)"
+pdf2svg "$1" "$tmpdir/%d.svg" all
+(cd "$tmpdir" && serialize_files) > "$2"
+rm -r "$tmpdir"
