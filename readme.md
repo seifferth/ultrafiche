@@ -24,3 +24,9 @@ ultrafiche <INPUT-FILE> <OUTPUT-FILE>
 ## Dependencies
 
 * pdf2svg
+
+## License
+
+All files in this repository are made available under the terms of the
+GNU General Purpose License, version 3 or later. A copy of that license
+is included in the repository as `license.txt`.
