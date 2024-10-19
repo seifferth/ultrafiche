@@ -5,7 +5,17 @@ serialize_files() {
 # file by embedding them using data uris. The page order is determined
 # by running 'sort -n', so naming the files something like 0.svg, 1.svg,
 # ..., 11.svg, 12.svg, etc. should work just fine.
-cat <<"EOF"
+#
+# Grep image width from the svg file. This allows us to do the size
+# calculations in Javascript even before loading the document, which
+# is useful to reduce page jitter (aka content shifts). Note that the
+# width extracted here still needs to be converted from pt to px to
+# be comparable with the measures for screen size. This is as simple
+# as multiplying it with roughly 1.33, which is done as part of the
+# javascript calculations specified further below.
+svgwidth="$(ls *.svg | sort -n | head -n1 |
+                xargs grep width | head -n1 | sed 's,.*width=",,;s,pt".*,,')"
+cat <<EOF
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -26,6 +36,13 @@ hr {
     height: 5px;
 }
 </style>
+<script>
+// Dynamically set the initial width for pages based on screen and page width
+var screenwidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+var pagewidth = 1.33*$svgwidth;
+var bestwidth = Math.min(.97*screenwidth, 1.2*pagewidth);
+document.styleSheets[0].insertRule('img { width: '+bestwidth+'px; }');
+</script>
 </head>
 <body>
 EOF
@@ -34,16 +51,9 @@ ls *.svg | sort -n | while read f; do
     base64 <"$f" | tr -d '\n'
     printf '">\n'
 done
-cat <<"EOF"
+cat <<EOF
 <hr />
 </body>
-<script>
-// Dynamically set the initial width for pages based on screen and page width
-var screenwidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-var pagewidth = document.querySelector('img').naturalWidth;
-var bestwidth = Math.min(.97*screenwidth, 1.2*pagewidth);
-document.styleSheets[0].insertRule(`img { width: ${bestwidth}px; }`);
-</script>
 </html>
 EOF
 }
