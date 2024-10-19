@@ -35,6 +35,19 @@ hr {
     margin: 0px;
     height: 5px;
 }
+@media print {
+    html, body {
+        width: 100%; height: 100%;
+        background-color: #ffffff;
+    }
+    img {
+        width: 99%;
+        height: 99%;
+    }
+    hr {
+        display: none;
+    }
+}
 </style>
 <script>
 // Dynamically set the initial width for pages based on screen and page width
