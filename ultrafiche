@@ -1,5 +1,17 @@
 #!/bin/sh
 
+print_help() {
+cat <<EOF
+Usage: ultrafiche <INPUT-PDF> <OUTPUT-HTML>
+EOF
+}
+
+if test "$1" = "-h" || test "$1" = "--help"; then
+    print_help; exit 0
+elif ! test "$#" = 2; then
+    print_help >&2; exit 1
+fi
+
 serialize_files() {
 # Serializes all svg files in the current directory into a single html
 # file by embedding them using data uris. The page order is determined
